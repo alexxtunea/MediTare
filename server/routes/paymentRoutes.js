@@ -20,12 +20,25 @@ router.put("/:bookingId/pay", protect, authorizeRoles("student"), async (req, re
       return res.status(403).json({ message: "You can only pay for your own booking" });
     }
 
-    if (booking.paymentStatus === "paid" || booking.status === "completed") {
+    if (booking.paymentStatus === "paid") {
       return res.status(400).json({ message: "Booking is already paid" });
     }
 
+    if (
+      booking.status !== "approved" &&
+      booking.status !== "completed" &&
+      booking.status !== "pending_payment"
+    ) {
+      return res.status(400).json({
+        message: "Booking can be paid only after the teacher approves it",
+      });
+    }
+
+    if (booking.status === "pending_payment") {
+      booking.status = "approved";
+    }
+
     booking.paymentStatus = "paid";
-    booking.status = "completed";
 
     await booking.save();
 

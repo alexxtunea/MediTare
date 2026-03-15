@@ -6,9 +6,25 @@ const formatSessionType = (teacher) => {
   return "Individual";
 };
 
+const statusLabels = {
+  pending_approval: "În așteptarea aprobării",
+  approved: "Aprobată",
+  pending_payment: "Aprobată",
+  completed: "Finalizată",
+  cancelled: "Anulată",
+};
+
+const paymentLabels = {
+  unpaid: "Neplătită",
+  paid: "Plătită",
+  failed: "Plată eșuată",
+};
+
 export default function BookingCard({
   booking,
+  variant = "student",
   onPay,
+  onApprove,
   onToggleReview,
   activeReviewBookingId,
   reviewForm,
@@ -17,23 +33,52 @@ export default function BookingCard({
   actionLoading,
 }) {
   const canReview =
-    booking.paymentStatus === "paid" || booking.status === "completed";
+    variant === "student" &&
+    booking.paymentStatus === "paid" &&
+    (booking.status === "completed" || booking.isPast);
+
+  const canPay =
+    variant === "student" &&
+    (booking.status === "approved" || booking.status === "pending_payment") &&
+    booking.paymentStatus === "unpaid";
+
+  const canApprove =
+    variant === "teacher" && booking.status === "pending_approval";
+
   const showReviewForm = activeReviewBookingId === booking._id;
+  const counterpart =
+    variant === "teacher"
+      ? booking.student?.name || "Student"
+      : booking.teacher?.name || "Profesor";
+  const counterpartMeta =
+    variant === "teacher" ? booking.student?.email : booking.subject;
 
   return (
     <article className="card booking-card">
       <div className="booking-meta">
         <div>
-          <h3>{booking.teacher?.name || "Profesor"}</h3>
-          <p className="muted">{booking.subject}</p>
+          <h3>{counterpart}</h3>
+          <p className="muted">{counterpartMeta}</p>
         </div>
         <div className="booking-statuses">
-          <span className="badge">{booking.status}</span>
-          <span className="badge subtle-badge">{booking.paymentStatus}</span>
+          <span className="badge">{statusLabels[booking.status] || booking.status}</span>
+          <span className="badge subtle-badge">
+            {paymentLabels[booking.paymentStatus] || booking.paymentStatus}
+          </span>
         </div>
       </div>
 
       <div className="details-grid">
+        {variant === "teacher" && (
+          <p>
+            <strong>Materie:</strong> {booking.subject}
+          </p>
+        )}
+        {variant === "student" && (
+          <p>
+            <strong>Profesor:</strong> {booking.teacher?.name || "Profesor"}
+          </p>
+        )}
         <p>
           <strong>Data:</strong> {booking.date}
         </p>
@@ -52,7 +97,18 @@ export default function BookingCard({
       </div>
 
       <div className="card-actions">
-        {booking.paymentStatus === "unpaid" && (
+        {canApprove && (
+          <button
+            type="button"
+            className="button"
+            onClick={() => onApprove(booking._id)}
+            disabled={actionLoading === `approve-${booking._id}`}
+          >
+            {actionLoading === `approve-${booking._id}` ? "Se aprobă..." : "Acceptă ședința"}
+          </button>
+        )}
+
+        {canPay && (
           <button
             type="button"
             className="button"

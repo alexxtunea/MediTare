@@ -42,8 +42,23 @@ const dayAliases = {
   sun: "sunday",
 };
 
+const dayLabels = {
+  monday: "Luni",
+  tuesday: "Marți",
+  wednesday: "Miercuri",
+  thursday: "Joi",
+  friday: "Vineri",
+  saturday: "Sâmbătă",
+  sunday: "Duminică",
+};
+
 const normalizeDayName = (value = "") =>
   dayAliases[value.trim().toLowerCase()] || "";
+
+const formatDayLabel = (value = "") => {
+  const normalizedDay = normalizeDayName(value);
+  return dayLabels[normalizedDay] || value;
+};
 
 const getCanonicalDayFromDate = (dateValue) => {
   if (!dateValue) {
@@ -65,8 +80,8 @@ const formatAvailability = (availability = []) => {
 
   return availability.map((slot) => ({
     dayKey: normalizeDayName(slot.day),
-    label: `${slot.day}: ${slot.start} - ${slot.end}`,
-    value: `${slot.day}: ${slot.start} - ${slot.end}`,
+    label: `${formatDayLabel(slot.day)}: ${slot.start} - ${slot.end}`,
+    value: `${formatDayLabel(slot.day)}: ${slot.start} - ${slot.end}`,
   }));
 };
 
@@ -219,49 +234,58 @@ export default function TeacherDetailsPage() {
   return (
     <div className="page container">
       <section className="teacher-hero card">
+        <div className="teacher-profile-head teacher-profile-head-full">
+          <p className="eyebrow">Profil profesor</p>
+          <h1>{teacher.name}</h1>
+        </div>
+
         <div className="teacher-hero-main">
-          <div className="teacher-profile-head">
+          <div className="teacher-profile-visual">
             {teacher.profileImage ? (
-              <img src={teacher.profileImage} alt={teacher.name} className="teacher-profile-image" />
+              <img
+                src={teacher.profileImage}
+                alt={teacher.name}
+                className="teacher-profile-image teacher-profile-image-large"
+              />
             ) : (
-              <div className="teacher-profile-image teacher-avatar-fallback large-avatar">
+              <div className="teacher-profile-image teacher-avatar-fallback teacher-profile-image-large">
                 {getInitials(teacher.name)}
               </div>
             )}
-            <div>
-              <p className="eyebrow">Profil profesor</p>
-              <h1>{teacher.name}</h1>
-            </div>
           </div>
-          <p className="card-text">
-            {teacher.description || "Profesor disponibil pentru sesiuni personalizate."}
-          </p>
+
+          <div className="teacher-info-box teacher-description-box">
+            <p className="card-text teacher-description-text">
+              {teacher.description ||
+                "Îmi adaptez ședințele în funcție de nivelul elevului și lucrez clar, pas cu pas."}
+            </p>
+          </div>
         </div>
 
         <div className="teacher-summary">
-          <p>
+          <div className="teacher-info-box">
             <strong>Materii:</strong>{" "}
             {teacher.subjects?.length ? teacher.subjects.join(", ") : "Nespecificate"}
-          </p>
-          <p>
+          </div>
+          <div className="teacher-info-box">
             <strong>Preț:</strong> {teacher.pricePerSession || 0} RON / ședință
-          </p>
-          <p>
+          </div>
+          <div className="teacher-info-box">
             <strong>Rating mediu:</strong> {teacher.averageRating?.toFixed(1) || "0.0"} (
             {teacher.ratingsCount || 0} review-uri)
-          </p>
-          <p>
+          </div>
+          <div className="teacher-info-box">
             <strong>Experiență:</strong> {teacher.experienceLevel || "Nespecificată"}
-          </p>
-          <p>
+          </div>
+          <div className="teacher-info-box">
             <strong>Instituție / loc de muncă:</strong> {teacher.teachesAt || "Nu a menționat"}
-          </p>
-          <p>
+          </div>
+          <div className="teacher-info-box">
             <strong>Durata unei ședințe:</strong> {teacher.sessionDuration || "Nespecificată"}
-          </p>
-          <p>
+          </div>
+          <div className="teacher-info-box">
             <strong>Tipul ședinței:</strong> {formatSessionType(teacher)}
-          </p>
+          </div>
         </div>
       </section>
 

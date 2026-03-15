@@ -10,6 +10,21 @@ const {
 
 const router = express.Router();
 
+const normalizeTimeSlotValue = (value = "") => {
+  const separatorIndex = value.indexOf(":");
+  const rawDay =
+    separatorIndex === -1 ? value : value.slice(0, separatorIndex);
+  const rawInterval =
+    separatorIndex === -1 ? "" : value.slice(separatorIndex + 1);
+  const normalizedDay = normalizeDayName(rawDay);
+  const normalizedInterval = rawInterval.trim().replace(/\s+/g, " ");
+
+  return {
+    day: normalizedDay,
+    interval: normalizedInterval,
+  };
+};
+
 // CREATE BOOKING - student only
 router.post("/", protect, authorizeRoles("student"), async (req, res) => {
   try {
@@ -62,8 +77,20 @@ router.post("/", protect, authorizeRoles("student"), async (req, res) => {
       : [];
 
     if (teacherAvailability.length > 0) {
+      const selectedTimeSlot = normalizeTimeSlotValue(timeSlot);
+
       const hasMatchingTimeSlot = teacherAvailability.some(
-        (slot) => `${slot.day}: ${slot.start} - ${slot.end}` === timeSlot
+        (slot) => {
+          const teacherSlot = normalizeTimeSlotValue(
+            `${slot.day}: ${slot.start} - ${slot.end}`
+          );
+
+          return (
+            teacherSlot.day === bookingDay &&
+            selectedTimeSlot.day === bookingDay &&
+            teacherSlot.interval === selectedTimeSlot.interval
+          );
+        }
       );
 
       if (!hasMatchingTimeSlot) {
@@ -80,7 +107,7 @@ router.post("/", protect, authorizeRoles("student"), async (req, res) => {
       date,
       timeSlot,
       price: teacherUser.pricePerSession,
-      status: "pending_payment",
+      status: "pending_approval",
       paymentStatus: "unpaid",
     });
 
@@ -112,6 +139,46 @@ router.get(
         .sort({ createdAt: -1 });
 
       res.json(bookings);
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  }
+);
+
+router.put(
+  "/:bookingId/approve",
+  protect,
+  authorizeRoles("teacher"),
+  async (req, res) => {
+    try {
+      const booking = await Booking.findById(req.params.bookingId)
+        .populate("student", "name email")
+        .populate(
+          "teacher",
+          "name email role subjects pricePerSession sessionDuration sessionType groupSize"
+        );
+
+      if (!booking) {
+        return res.status(404).json({ message: "Booking not found" });
+      }
+
+      if (booking.teacher._id.toString() !== req.user._id.toString()) {
+        return res.status(403).json({ message: "You can approve only your own bookings" });
+      }
+
+      if (booking.status !== "pending_approval") {
+        return res.status(400).json({
+          message: "Only bookings waiting for approval can be accepted",
+        });
+      }
+
+      booking.status = "approved";
+      await booking.save();
+
+      res.json({
+        message: "Booking approved successfully",
+        booking,
+      });
     } catch (error) {
       res.status(500).json({ message: error.message });
     }

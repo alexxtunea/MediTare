@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import api from "../api/axios";
 import BookingCard from "../components/BookingCard";
 import ErrorMessage from "../components/ErrorMessage";
@@ -12,6 +12,58 @@ const emptyReviewForm = {
 
 const getApiMessage = (error) =>
   error.response?.data?.message || "A apărut o eroare. Încearcă din nou.";
+
+const getBookingDateValue = (booking) => {
+  if (!booking?.date) {
+    return null;
+  }
+
+  const parsedDate = new Date(`${booking.date}T23:59:59`);
+  return Number.isNaN(parsedDate.getTime()) ? null : parsedDate;
+};
+
+const isPastBooking = (booking) => {
+  const bookingDate = getBookingDateValue(booking);
+  return bookingDate ? bookingDate < new Date() : false;
+};
+
+const splitBookings = (bookings) => {
+  const normalizedBookings = bookings.map((booking) => ({
+    ...booking,
+    isPast: isPastBooking(booking),
+  }));
+
+  return {
+    completed: normalizedBookings.filter(
+      (booking) =>
+        booking.status === "completed" ||
+        ((booking.status === "approved" || booking.status === "pending_payment") && booking.isPast)
+    ),
+    pendingApproval: normalizedBookings.filter(
+      (booking) => booking.status === "pending_approval"
+    ),
+    upcoming: normalizedBookings.filter(
+      (booking) =>
+        (booking.status === "approved" || booking.status === "pending_payment") && !booking.isPast
+    ),
+  };
+};
+
+function BookingSection({ title, description, bookings, emptyMessage, children }) {
+  return (
+    <section className="dashboard-section card">
+      <div className="dashboard-section-head">
+        <div>
+          <h2>{title}</h2>
+          <p className="muted">{description}</p>
+        </div>
+        <span className="badge">{bookings.length}</span>
+      </div>
+
+      {bookings.length ? children : <div className="message info-message">{emptyMessage}</div>}
+    </section>
+  );
+}
 
 export default function StudentDashboardPage() {
   const { user } = useAuth();
@@ -41,6 +93,8 @@ export default function StudentDashboardPage() {
     fetchBookings();
   }, []);
 
+  const groupedBookings = useMemo(() => splitBookings(bookings), [bookings]);
+
   const handlePay = async (bookingId) => {
     setError("");
     setSuccess("");
@@ -49,7 +103,7 @@ export default function StudentDashboardPage() {
 
     try {
       await wait(700);
-      setPaymentSimulation("Verificăm datele booking-ului...");
+      setPaymentSimulation("Verificăm aprobarea profesorului...");
       await wait(700);
       setPaymentSimulation("Confirmăm tranzacția cu procesatorul...");
       await wait(900);
@@ -121,27 +175,79 @@ export default function StudentDashboardPage() {
       {success && <div className="message success-message">{success}</div>}
       {paymentSimulation && <div className="message payment-message">{paymentSimulation}</div>}
 
-      <section className="stack">
-        {bookings.length ? (
-          bookings.map((booking) => (
-            <BookingCard
-              key={booking._id}
-              booking={booking}
-              onPay={handlePay}
-              onToggleReview={handleToggleReview}
-              activeReviewBookingId={activeReviewBookingId}
-              reviewForm={reviewForm}
-              onReviewChange={handleReviewChange}
-              onReviewSubmit={handleReviewSubmit}
-              actionLoading={actionLoading}
-            />
-          ))
-        ) : (
-          <div className="message info-message">
-            Nu ai booking-uri momentan. Poți începe din pagina cu profesori.
+      <div className="dashboard-sections">
+        <BookingSection
+          title="Ședințe upcoming"
+          description="Ședințe aprobate de profesor și programate pentru perioada următoare."
+          bookings={groupedBookings.upcoming}
+          emptyMessage="Nu ai ședințe upcoming în acest moment."
+        >
+          <div className="stack">
+            {groupedBookings.upcoming.map((booking) => (
+              <BookingCard
+                key={booking._id}
+                booking={booking}
+                variant="student"
+                onPay={handlePay}
+                onToggleReview={handleToggleReview}
+                activeReviewBookingId={activeReviewBookingId}
+                reviewForm={reviewForm}
+                onReviewChange={handleReviewChange}
+                onReviewSubmit={handleReviewSubmit}
+                actionLoading={actionLoading}
+              />
+            ))}
           </div>
-        )}
-      </section>
+        </BookingSection>
+
+        <BookingSection
+          title="Ședințe care așteaptă aprobare"
+          description="Aceste rezervări vor trece la upcoming doar după ce profesorul le acceptă."
+          bookings={groupedBookings.pendingApproval}
+          emptyMessage="Nu ai rezervări care așteaptă aprobare."
+        >
+          <div className="stack">
+            {groupedBookings.pendingApproval.map((booking) => (
+              <BookingCard
+                key={booking._id}
+                booking={booking}
+                variant="student"
+                onPay={handlePay}
+                onToggleReview={handleToggleReview}
+                activeReviewBookingId={activeReviewBookingId}
+                reviewForm={reviewForm}
+                onReviewChange={handleReviewChange}
+                onReviewSubmit={handleReviewSubmit}
+                actionLoading={actionLoading}
+              />
+            ))}
+          </div>
+        </BookingSection>
+
+        <BookingSection
+          title="Ședințe finalizate"
+          description="Aici găsești ședințele care s-au încheiat și pentru care poți lăsa review."
+          bookings={groupedBookings.completed}
+          emptyMessage="Nu ai încă ședințe finalizate."
+        >
+          <div className="stack">
+            {groupedBookings.completed.map((booking) => (
+              <BookingCard
+                key={booking._id}
+                booking={booking}
+                variant="student"
+                onPay={handlePay}
+                onToggleReview={handleToggleReview}
+                activeReviewBookingId={activeReviewBookingId}
+                reviewForm={reviewForm}
+                onReviewChange={handleReviewChange}
+                onReviewSubmit={handleReviewSubmit}
+                actionLoading={actionLoading}
+              />
+            ))}
+          </div>
+        </BookingSection>
+      </div>
     </div>
   );
 }
