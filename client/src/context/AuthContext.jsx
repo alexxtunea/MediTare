@@ -45,6 +45,9 @@ export function AuthProvider({ children }) {
       email: data.email,
       role: data.role,
       profileImage: data.profileImage,
+      age: data.age,
+      educationLevel: data.educationLevel,
+      description: data.description,
       experienceLevel: data.experienceLevel,
       teachesAt: data.teachesAt,
     };
@@ -61,6 +64,9 @@ export function AuthProvider({ children }) {
       email: data.email,
       role: data.role,
       profileImage: data.profileImage,
+      age: data.age,
+      educationLevel: data.educationLevel,
+      description: data.description,
       experienceLevel: data.experienceLevel,
       teachesAt: data.teachesAt,
     };

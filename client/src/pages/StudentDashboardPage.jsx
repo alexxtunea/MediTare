@@ -69,7 +69,14 @@ function BookingSection({ title, description, bookings, emptyMessage, children }
 }
 
 export default function StudentDashboardPage() {
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
+  const [profileForm, setProfileForm] = useState({
+    name: "",
+    profileImage: "",
+    age: "",
+    educationLevel: "",
+    description: "",
+  });
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -78,13 +85,25 @@ export default function StudentDashboardPage() {
   const [reviewForm, setReviewForm] = useState(emptyReviewForm);
   const [actionLoading, setActionLoading] = useState("");
   const [paymentSimulation, setPaymentSimulation] = useState("");
+  const [savingProfile, setSavingProfile] = useState(false);
 
   const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
   const fetchBookings = async () => {
     try {
-      const { data } = await api.get("/bookings/my-bookings");
-      setBookings(data);
+      const [profileResponse, bookingsResponse] = await Promise.all([
+        api.get("/auth/me"),
+        api.get("/bookings/my-bookings"),
+      ]);
+
+      setProfileForm({
+        name: profileResponse.data.name || "",
+        profileImage: profileResponse.data.profileImage || "",
+        age: profileResponse.data.age || "",
+        educationLevel: profileResponse.data.educationLevel || "",
+        description: profileResponse.data.description || "",
+      });
+      setBookings(bookingsResponse.data);
     } catch (fetchError) {
       setError(getApiMessage(fetchError));
     } finally {
@@ -97,6 +116,38 @@ export default function StudentDashboardPage() {
   }, []);
 
   const groupedBookings = useMemo(() => splitBookings(bookings), [bookings]);
+
+  const handleProfileChange = (event) => {
+    setProfileForm((prev) => ({
+      ...prev,
+      [event.target.name]: event.target.value,
+    }));
+  };
+
+  const handleProfileSubmit = async (event) => {
+    event.preventDefault();
+    setError("");
+    setSuccess("");
+    setSavingProfile(true);
+
+    try {
+      await api.put("/users/profile", {
+        name: profileForm.name,
+        profileImage: profileForm.profileImage,
+        age: profileForm.age ? Number(profileForm.age) : null,
+        educationLevel: profileForm.educationLevel,
+        description: profileForm.description,
+      });
+
+      await refreshUser();
+      setSuccess("Profilul studentului a fost actualizat.");
+      await fetchBookings();
+    } catch (submitError) {
+      setError(getApiMessage(submitError));
+    } finally {
+      setSavingProfile(false);
+    }
+  };
 
   const handlePay = async (bookingId) => {
     setError("");
@@ -178,6 +229,87 @@ export default function StudentDashboardPage() {
       {success && <div className="message success-message">{success}</div>}
       {paymentSimulation && <div className="message payment-message">{paymentSimulation}</div>}
 
+      <section className="card dashboard-profile-card">
+        <h2>Profilul meu</h2>
+        <form className="form" onSubmit={handleProfileSubmit}>
+          <div className="details-grid">
+            <div className="form-group">
+              <label htmlFor="student-name">Nume și prenume</label>
+              <input
+                id="student-name"
+                name="name"
+                value={profileForm.name}
+                onChange={handleProfileChange}
+                required
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="student-image">URL poză profil</label>
+              <input
+                id="student-image"
+                name="profileImage"
+                value={profileForm.profileImage}
+                onChange={handleProfileChange}
+                placeholder="https://..."
+              />
+            </div>
+          </div>
+
+          <div className="details-grid">
+            <div className="form-group">
+              <label htmlFor="student-age">Vârstă</label>
+              <input
+                id="student-age"
+                type="number"
+                min="5"
+                max="100"
+                name="age"
+                value={profileForm.age}
+                onChange={handleProfileChange}
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="student-level">Nivel de studiu</label>
+              <input
+                id="student-level"
+                name="educationLevel"
+                value={profileForm.educationLevel}
+                onChange={handleProfileChange}
+                placeholder="Ex: Clasa a IX-a / a X-a / a XI-a / a XII-a"
+              />
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="student-description">Despre mine</label>
+            <textarea
+              id="student-description"
+              name="description"
+              rows="4"
+              value={profileForm.description}
+              onChange={handleProfileChange}
+              placeholder="Spune pe scurt cine ești, ce obiective ai și cum preferi să înveți."
+            />
+          </div>
+
+          {profileForm.profileImage && (
+            <div className="profile-preview">
+              <img
+                src={profileForm.profileImage}
+                alt="Preview profil student"
+                className="profile-preview-image"
+              />
+            </div>
+          )}
+
+          <button type="submit" className="button" disabled={savingProfile}>
+            {savingProfile ? "Se salvează..." : "Salvează profilul"}
+          </button>
+        </form>
+      </section>
+
       <div className="dashboard-sections">
         <BookingSection
           title="Ședințe upcoming"
@@ -191,6 +323,7 @@ export default function StudentDashboardPage() {
                 key={booking._id}
                 booking={booking}
                 variant="student"
+                currentUserId={user?._id}
                 onPay={handlePay}
                 onToggleReview={handleToggleReview}
                 activeReviewBookingId={activeReviewBookingId}
@@ -215,6 +348,7 @@ export default function StudentDashboardPage() {
                 key={booking._id}
                 booking={booking}
                 variant="student"
+                currentUserId={user?._id}
                 onPay={handlePay}
                 onToggleReview={handleToggleReview}
                 activeReviewBookingId={activeReviewBookingId}
@@ -239,6 +373,7 @@ export default function StudentDashboardPage() {
                 key={booking._id}
                 booking={booking}
                 variant="student"
+                currentUserId={user?._id}
                 onPay={handlePay}
                 onToggleReview={handleToggleReview}
                 activeReviewBookingId={activeReviewBookingId}

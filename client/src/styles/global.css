@@ -1213,6 +1213,77 @@ button {
   gap: 1.1rem;
 }
 
+.participant-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.participant-profile-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 0.6rem 0.95rem;
+  border-radius: 999px;
+  background: rgba(43, 102, 71, 0.1);
+  color: var(--forest-800);
+  font-weight: 700;
+}
+
+.group-participants-box {
+  display: grid;
+  gap: 0.85rem;
+  padding: 1rem 1.1rem;
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(168, 186, 161, 0.16), rgba(194, 215, 211, 0.12));
+  border: 1px solid rgba(28, 74, 51, 0.1);
+}
+
+.group-participants-list {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.group-participant-item {
+  display: grid;
+  grid-template-columns: 54px 1fr;
+  gap: 0.8rem;
+  align-items: center;
+  padding: 0.8rem;
+  border-radius: 16px;
+  background: rgba(255, 251, 245, 0.88);
+  border: 1px solid rgba(18, 53, 36, 0.08);
+}
+
+.group-participant-avatar {
+  width: 54px;
+  height: 54px;
+  border-radius: 16px;
+  object-fit: cover;
+  border: 2px solid rgba(255, 250, 242, 0.92);
+}
+
+.group-participant-fallback {
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, var(--forest-700), var(--sage-300));
+  color: #fff9f0;
+  font-weight: 800;
+}
+
+.group-participant-copy {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.group-participant-copy span {
+  font-weight: 700;
+}
+
+.group-participant-copy small {
+  color: var(--muted);
+}
+
 .profile-preview {
   padding: 0.5rem 0 0;
 }

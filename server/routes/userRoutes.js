@@ -5,6 +5,27 @@ const authorizeRoles = require("../middleware/roleMiddleware");
 
 const router = express.Router();
 
+const serializeUser = (user) => ({
+  _id: user._id,
+  name: user.name,
+  email: user.email,
+  role: user.role,
+  subjects: user.subjects,
+  description: user.description,
+  profileImage: user.profileImage,
+  age: user.age,
+  educationLevel: user.educationLevel,
+  experienceLevel: user.experienceLevel,
+  teachesAt: user.teachesAt,
+  sessionDuration: user.sessionDuration,
+  sessionType: user.sessionType,
+  groupSize: user.groupSize,
+  pricePerSession: user.pricePerSession,
+  availability: user.availability,
+  averageRating: user.averageRating,
+  ratingsCount: user.ratingsCount,
+});
+
 // GET ALL TEACHERS
 router.get("/teachers", async (req, res) => {
   try {
@@ -33,6 +54,23 @@ router.get("/teachers/:id", async (req, res) => {
   }
 });
 
+router.get("/students/:id", protect, async (req, res) => {
+  try {
+    const student = await User.findOne({
+      _id: req.params.id,
+      role: "student",
+    }).select("-password");
+
+    if (!student) {
+      return res.status(404).json({ message: "Student not found" });
+    }
+
+    res.json(student);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 // UPDATE MY PROFILE
 router.put("/profile", protect, async (req, res) => {
   try {
@@ -43,11 +81,13 @@ router.put("/profile", protect, async (req, res) => {
     }
 
     user.name = req.body.name || user.name;
+    user.profileImage = req.body.profileImage ?? user.profileImage;
+    user.age = req.body.age !== undefined ? Number(req.body.age) || null : user.age;
+    user.educationLevel = req.body.educationLevel ?? user.educationLevel;
+    user.description = req.body.description ?? user.description;
 
     if (user.role === "teacher") {
       user.subjects = req.body.subjects || user.subjects;
-      user.description = req.body.description || user.description;
-      user.profileImage = req.body.profileImage ?? user.profileImage;
       user.experienceLevel = req.body.experienceLevel ?? user.experienceLevel;
       user.teachesAt = req.body.teachesAt ?? user.teachesAt;
       user.sessionDuration = req.body.sessionDuration ?? user.sessionDuration;
@@ -60,24 +100,7 @@ router.put("/profile", protect, async (req, res) => {
 
     const updatedUser = await user.save();
 
-    res.json({
-      _id: updatedUser._id,
-      name: updatedUser.name,
-      email: updatedUser.email,
-      role: updatedUser.role,
-      subjects: updatedUser.subjects,
-      description: updatedUser.description,
-      profileImage: updatedUser.profileImage,
-      experienceLevel: updatedUser.experienceLevel,
-      teachesAt: updatedUser.teachesAt,
-      sessionDuration: updatedUser.sessionDuration,
-      sessionType: updatedUser.sessionType,
-      groupSize: updatedUser.groupSize,
-      pricePerSession: updatedUser.pricePerSession,
-      availability: updatedUser.availability,
-      averageRating: updatedUser.averageRating,
-      ratingsCount: updatedUser.ratingsCount,
-    });
+    res.json(serializeUser(updatedUser));
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -112,24 +135,7 @@ router.put(
 
       const updatedTeacher = await teacher.save();
 
-      res.json({
-        _id: updatedTeacher._id,
-        name: updatedTeacher.name,
-        email: updatedTeacher.email,
-        role: updatedTeacher.role,
-        subjects: updatedTeacher.subjects,
-        description: updatedTeacher.description,
-        profileImage: updatedTeacher.profileImage,
-        experienceLevel: updatedTeacher.experienceLevel,
-        teachesAt: updatedTeacher.teachesAt,
-        sessionDuration: updatedTeacher.sessionDuration,
-        sessionType: updatedTeacher.sessionType,
-        groupSize: updatedTeacher.groupSize,
-        pricePerSession: updatedTeacher.pricePerSession,
-        availability: updatedTeacher.availability,
-        averageRating: updatedTeacher.averageRating,
-        ratingsCount: updatedTeacher.ratingsCount,
-      });
+      res.json(serializeUser(updatedTeacher));
     } catch (error) {
       res.status(500).json({ message: error.message });
     }

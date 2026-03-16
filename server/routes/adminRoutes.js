@@ -95,6 +95,8 @@ router.post("/users", protect, authorizeRoles("admin"), async (req, res) => {
       subjects,
       description,
       profileImage,
+      age,
+      educationLevel,
       experienceLevel,
       teachesAt,
       sessionDuration,
@@ -124,6 +126,8 @@ router.post("/users", protect, authorizeRoles("admin"), async (req, res) => {
       subjects: Array.isArray(subjects) ? subjects : [],
       description: description || "",
       profileImage: profileImage || "",
+      age: age !== undefined ? Number(age) || null : null,
+      educationLevel: educationLevel || "",
       experienceLevel: experienceLevel || "",
       teachesAt: teachesAt || "",
       sessionDuration: sessionDuration || "",
@@ -156,6 +160,8 @@ router.put("/users/:id", protect, authorizeRoles("admin"), async (req, res) => {
       subjects,
       description,
       profileImage,
+      age,
+      educationLevel,
       experienceLevel,
       teachesAt,
       sessionDuration,
@@ -182,6 +188,8 @@ router.put("/users/:id", protect, authorizeRoles("admin"), async (req, res) => {
     user.subjects = Array.isArray(subjects) ? subjects : user.subjects;
     user.description = description ?? user.description;
     user.profileImage = profileImage ?? user.profileImage;
+    user.age = age !== undefined ? Number(age) || null : user.age;
+    user.educationLevel = educationLevel ?? user.educationLevel;
     user.experienceLevel = experienceLevel ?? user.experienceLevel;
     user.teachesAt = teachesAt ?? user.teachesAt;
     user.sessionDuration = sessionDuration ?? user.sessionDuration;

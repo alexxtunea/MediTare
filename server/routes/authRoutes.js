@@ -10,6 +10,19 @@ const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: "7d" });
 };
 
+const serializeAuthUser = (user) => ({
+  _id: user._id,
+  name: user.name,
+  email: user.email,
+  role: user.role,
+  profileImage: user.profileImage,
+  age: user.age,
+  educationLevel: user.educationLevel,
+  description: user.description,
+  experienceLevel: user.experienceLevel,
+  teachesAt: user.teachesAt,
+});
+
 // REGISTER
 router.post("/register", async (req, res) => {
   try {
@@ -35,13 +48,7 @@ router.post("/register", async (req, res) => {
     });
 
     res.status(201).json({
-      _id: user._id,
-      name: user.name,
-      email: user.email,
-      role: user.role,
-      profileImage: user.profileImage,
-      experienceLevel: user.experienceLevel,
-      teachesAt: user.teachesAt,
+      ...serializeAuthUser(user),
       token: generateToken(user._id),
     });
   } catch (error) {
@@ -71,13 +78,7 @@ router.post("/login", async (req, res) => {
     }
 
     res.json({
-      _id: user._id,
-      name: user.name,
-      email: user.email,
-      role: user.role,
-      profileImage: user.profileImage,
-      experienceLevel: user.experienceLevel,
-      teachesAt: user.teachesAt,
+      ...serializeAuthUser(user),
       token: generateToken(user._id),
     });
   } catch (error) {

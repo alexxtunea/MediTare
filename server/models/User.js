@@ -64,6 +64,19 @@ const userSchema = new mongoose.Schema(
       trim: true,
     },
 
+    age: {
+      type: Number,
+      default: null,
+      min: 5,
+      max: 100,
+    },
+
+    educationLevel: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+
     experienceLevel: {
       type: String,
       default: "",

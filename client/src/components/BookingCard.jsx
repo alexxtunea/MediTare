@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+
 const formatSessionType = (teacher) => {
   if (teacher?.sessionType === "group") {
     return `Grupă, până la ${teacher.groupSize || 2} persoane`;
@@ -5,6 +7,14 @@ const formatSessionType = (teacher) => {
 
   return "Individual";
 };
+
+const getInitials = (name = "") =>
+  name
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase())
+    .join("");
 
 const statusLabels = {
   pending_approval: "În așteptarea aprobării",
@@ -31,6 +41,7 @@ export default function BookingCard({
   onReviewChange,
   onReviewSubmit,
   actionLoading,
+  currentUserId,
 }) {
   const canReview =
     variant === "student" &&
@@ -45,6 +56,10 @@ export default function BookingCard({
 
   const canApprove =
     variant === "teacher" && booking.status === "pending_approval";
+  const isGroupSession = booking.teacher?.sessionType === "group";
+  const participants = Array.isArray(booking.sessionParticipants)
+    ? booking.sessionParticipants
+    : [];
 
   const showReviewForm = activeReviewBookingId === booking._id;
   const counterpart =
@@ -96,6 +111,53 @@ export default function BookingCard({
           <strong>Durată:</strong> {booking.teacher?.sessionDuration || "Nespecificată"}
         </p>
       </div>
+
+      {variant === "teacher" && booking.student?._id && (
+        <div className="participant-links">
+          <Link to={`/students/${booking.student._id}`} className="participant-profile-link">
+            Vezi profilul studentului
+          </Link>
+        </div>
+      )}
+
+      {isGroupSession && participants.length > 0 && (
+        <div className="group-participants-box">
+          <strong>Participanți în grupă</strong>
+          <div className="group-participants-list">
+            {participants.map((participant) => (
+              <Link
+                key={participant._id}
+                to={`/students/${participant._id}`}
+                className="group-participant-item"
+              >
+                {participant.profileImage ? (
+                  <img
+                    src={participant.profileImage}
+                    alt={participant.name}
+                    className="group-participant-avatar"
+                  />
+                ) : (
+                  <span className="group-participant-avatar group-participant-fallback">
+                    {getInitials(participant.name)}
+                  </span>
+                )}
+                <span className="group-participant-copy">
+                  <span>
+                    {participant.name}
+                    {variant === "student" && participant._id === currentUserId
+                      ? " (Tu)"
+                      : ""}
+                  </span>
+                  <small>
+                    {participant.educationLevel || "Nivel nespecificat"}
+                    {participant.age ? ` · ${participant.age} ani` : ""}
+                  </small>
+                </span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="card-actions">
         {canApprove && (

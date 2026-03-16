@@ -9,6 +9,7 @@ import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import TeachersListPage from "./pages/TeachersListPage";
 import TeacherDetailsPage from "./pages/TeacherDetailsPage";
+import StudentDetailsPage from "./pages/StudentDetailsPage";
 import StudentDashboardPage from "./pages/StudentDashboardPage";
 import TeacherDashboardPage from "./pages/TeacherDashboardPage";
 import AdminDashboardPage from "./pages/AdminDashboardPage";
@@ -43,6 +44,14 @@ export default function App() {
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/teachers" element={<TeachersListPage />} />
           <Route path="/teachers/:id" element={<TeacherDetailsPage />} />
+          <Route
+            path="/students/:id"
+            element={
+              <ProtectedRoute>
+                <StudentDetailsPage />
+              </ProtectedRoute>
+            }
+          />
           <Route
             path="/dashboard"
             element={

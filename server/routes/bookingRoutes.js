@@ -26,6 +26,37 @@ const normalizeTimeSlotValue = (value = "") => {
   };
 };
 
+const enrichBookingsWithParticipants = async (bookings) => {
+  const enrichedBookings = await Promise.all(
+    bookings.map(async (bookingDocument) => {
+      const booking = bookingDocument.toObject ? bookingDocument.toObject() : bookingDocument;
+
+      const sessionParticipants = await Booking.find({
+        teacher: booking.teacher?._id || booking.teacher,
+        subject: booking.subject,
+        date: booking.date,
+        timeSlot: booking.timeSlot,
+        status: { $ne: "cancelled" },
+      })
+        .populate(
+          "student",
+          "name email profileImage age educationLevel description"
+        )
+        .select("student status paymentStatus")
+        .sort({ createdAt: 1 });
+
+      return {
+        ...booking,
+        sessionParticipants: sessionParticipants
+          .map((participantBooking) => participantBooking.student)
+          .filter(Boolean),
+      };
+    })
+  );
+
+  return enrichedBookings;
+};
+
 // CREATE BOOKING - student only
 router.post("/", protect, authorizeRoles("student"), async (req, res) => {
   try {
@@ -149,9 +180,11 @@ router.get(
         existingReviews.map((review) => review.booking.toString())
       );
 
+      const bookingsWithParticipants = await enrichBookingsWithParticipants(bookings);
+
       res.json(
-        bookings.map((booking) => ({
-          ...booking.toObject(),
+        bookingsWithParticipants.map((booking) => ({
+          ...booking,
           hasReview: reviewedBookingIds.has(booking._id.toString()),
         }))
       );
@@ -216,7 +249,9 @@ router.get(
         )
         .sort({ createdAt: -1 });
 
-      res.json(bookings);
+      const bookingsWithParticipants = await enrichBookingsWithParticipants(bookings);
+
+      res.json(bookingsWithParticipants);
     } catch (error) {
       res.status(500).json({ message: error.message });
     }

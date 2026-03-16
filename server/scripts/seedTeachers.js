@@ -243,11 +243,51 @@ const demoTeachers = [
 ];
 
 const demoStudents = [
-  { name: "Maria Tudor", email: "maria.tudor@student-demo.ro", password: "student123" },
-  { name: "Alex Rusu", email: "alex.rusu@student-demo.ro", password: "student123" },
-  { name: "Teodora Enache", email: "teodora.enache@student-demo.ro", password: "student123" },
-  { name: "Victor Stan", email: "victor.stan@student-demo.ro", password: "student123" },
-  { name: "Ioana Dima", email: "ioana.dima@student-demo.ro", password: "student123" },
+  {
+    name: "Maria Tudor",
+    email: "maria.tudor@student-demo.ro",
+    password: "student123",
+    profileImage: "https://i.pravatar.cc/300?img=9",
+    age: 18,
+    educationLevel: "Clasa a XII-a",
+    description: "Mă pregătesc pentru Bac și caut ședințe clare, bine structurate și practice.",
+  },
+  {
+    name: "Alex Rusu",
+    email: "alex.rusu@student-demo.ro",
+    password: "student123",
+    profileImage: "https://i.pravatar.cc/300?img=13",
+    age: 17,
+    educationLevel: "Clasa a XI-a",
+    description: "Îmi place să lucrez constant și caut profesori care explică aplicat și calm.",
+  },
+  {
+    name: "Teodora Enache",
+    email: "teodora.enache@student-demo.ro",
+    password: "student123",
+    profileImage: "https://i.pravatar.cc/300?img=21",
+    age: 18,
+    educationLevel: "Clasa a XII-a",
+    description: "Sunt interesată de sinteze bune și de pregătire eficientă pentru examene.",
+  },
+  {
+    name: "Victor Stan",
+    email: "victor.stan@student-demo.ro",
+    password: "student123",
+    profileImage: "https://i.pravatar.cc/300?img=18",
+    age: 16,
+    educationLevel: "Clasa a X-a",
+    description: "Încerc să recuperez materia și mă ajută mult ședințele pas cu pas.",
+  },
+  {
+    name: "Ioana Dima",
+    email: "ioana.dima@student-demo.ro",
+    password: "student123",
+    profileImage: "https://i.pravatar.cc/300?img=29",
+    age: 17,
+    educationLevel: "Clasa a XI-a",
+    description: "Caut sesiuni interactive și îmi place să lucrez în grupuri mici când are sens.",
+  },
 ];
 
 const demoAdmin = {
