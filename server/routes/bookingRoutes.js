@@ -1,5 +1,6 @@
 const express = require("express");
 const Booking = require("../models/Booking");
+const Review = require("../models/Review");
 const User = require("../models/User");
 const protect = require("../middleware/authMiddleware");
 const authorizeRoles = require("../middleware/roleMiddleware");
@@ -138,7 +139,22 @@ router.get(
         )
         .sort({ createdAt: -1 });
 
-      res.json(bookings);
+      const bookingIds = bookings.map((booking) => booking._id);
+      const existingReviews = await Review.find({
+        student: req.user._id,
+        booking: { $in: bookingIds },
+      }).select("booking");
+
+      const reviewedBookingIds = new Set(
+        existingReviews.map((review) => review.booking.toString())
+      );
+
+      res.json(
+        bookings.map((booking) => ({
+          ...booking.toObject(),
+          hasReview: reviewedBookingIds.has(booking._id.toString()),
+        }))
+      );
     } catch (error) {
       res.status(500).json({ message: error.message });
     }
@@ -194,6 +210,10 @@ router.get(
     try {
       const bookings = await Booking.find({ teacher: req.user._id })
         .populate("student", "name email")
+        .populate(
+          "teacher",
+          "name email role subjects pricePerSession description sessionDuration sessionType groupSize"
+        )
         .sort({ createdAt: -1 });
 
       res.json(bookings);

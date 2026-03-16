@@ -36,7 +36,7 @@ const splitBookings = (bookings) => {
   return {
     completed: normalizedBookings.filter(
       (booking) =>
-        booking.status === "completed" ||
+        (booking.status === "completed" && booking.isPast) ||
         ((booking.status === "approved" || booking.status === "pending_payment") && booking.isPast)
     ),
     pendingApproval: normalizedBookings.filter(
@@ -44,7 +44,10 @@ const splitBookings = (bookings) => {
     ),
     upcoming: normalizedBookings.filter(
       (booking) =>
-        (booking.status === "approved" || booking.status === "pending_payment") && !booking.isPast
+        (booking.status === "approved" ||
+          booking.status === "pending_payment" ||
+          booking.status === "completed") &&
+        !booking.isPast
     ),
   };
 };

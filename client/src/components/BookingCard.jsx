@@ -34,6 +34,7 @@ export default function BookingCard({
 }) {
   const canReview =
     variant === "student" &&
+    !booking.hasReview &&
     booking.paymentStatus === "paid" &&
     (booking.status === "completed" || booking.isPast);
 
@@ -127,6 +128,10 @@ export default function BookingCard({
           >
             {showReviewForm ? "Anulează review-ul" : "Adaugă review"}
           </button>
+        )}
+
+        {variant === "student" && booking.hasReview && (
+          <span className="badge subtle-badge">Review adăugat</span>
         )}
       </div>
 

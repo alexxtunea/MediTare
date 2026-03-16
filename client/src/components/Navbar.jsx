@@ -48,7 +48,10 @@ export default function Navbar() {
           <span className="brand-mark">
             <BrandIcon />
           </span>
-          <span className="brand-text">MediTare</span>
+          <span className="brand-text">
+            <span className="brand-text-medi">Medi</span>
+            <span className="brand-text-tare">Tare</span>
+          </span>
         </Link>
 
         <nav className="nav-links">

@@ -120,11 +120,19 @@ button {
 }
 
 .brand-text {
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: inherit;
   font-size: 1.9rem;
   font-weight: 800;
-  color: #1d2330;
   letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+.brand-text-medi {
+  color: var(--forest-700);
+}
+
+.brand-text-tare {
+  color: #9d6f2f;
 }
 
 .nav-links {
